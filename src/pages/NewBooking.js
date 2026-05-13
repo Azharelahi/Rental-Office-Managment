@@ -1,3 +1,10 @@
+/**
+ * The `NewBooking` function returns a formatted HTML template for a new booking form with fields for
+ * client name, car type, car provider, dates, and an option to store time.
+ * @returns The `NewBooking` function returns an HTML template for a new booking form. The form
+ * includes fields for client name, car type, car provided by, from date, end date, store time, and
+ * select time. It also has a button to save the booking.
+ */
 export function NewBooking() {
 
   return `
