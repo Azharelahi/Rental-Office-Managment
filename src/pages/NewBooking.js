@@ -1,10 +1,28 @@
-/**
- * The `NewBooking` function returns a formatted HTML template for a new booking form with fields for
- * client name, car type, car provider, dates, and an option to store time.
- * @returns The `NewBooking` function returns an HTML template for a new booking form. The form
- * includes fields for client name, car type, car provided by, from date, end date, store time, and
- * select time. It also has a button to save the booking.
- */
+async function loadCars() {
+console.log("Loading cars from database...")
+  const select = document.getElementById('car-select')
+
+  if (!select) return   // safety check
+
+  const cars = await window.api.getCars()
+
+  cars.forEach(car => {
+
+    const option = document.createElement('option')
+
+    option.value = car.id
+    option.textContent = car.car_name_and_no
+
+    select.appendChild(option)
+
+  })
+}
+export function initNewBooking() {
+  requestAnimationFrame(() => {
+    loadCars()
+  })
+}
+// loadCars()
 export function NewBooking() {
 
   return `
@@ -90,7 +108,7 @@ export function NewBooking() {
           </div>
 
 
-          <!-- CAR TYPE -->
+          <!-- CAR SELECTION -->
 
           <div>
 
@@ -102,7 +120,7 @@ export function NewBooking() {
                 color: #374151;
               "
             >
-              Car Type
+              Car
             </label>
 
             <select
@@ -122,18 +140,6 @@ export function NewBooking() {
                 Select Car From Database
               </option>
 
-              <option value="Corolla">
-                Corolla
-              </option>
-
-              <option value="Civic">
-                Civic
-              </option>
-
-              <option value="BRV">
-                BRV
-              </option>
-
             </select>
 
             <div
@@ -149,7 +155,7 @@ export function NewBooking() {
 
             <input 
               type="text"
-              placeholder="Enter car manually"
+              placeholder="Enter car manually (optional for now)"
               style="
                 width: 100%;
                 padding: 14px;
@@ -163,7 +169,7 @@ export function NewBooking() {
           </div>
 
 
-          <!-- PROVIDED BY -->
+          <!-- CAR PROVIDED BY -->
 
           <div>
 
@@ -179,6 +185,7 @@ export function NewBooking() {
             </label>
 
             <select
+              required
               style="
                 width: 100%;
                 padding: 14px;
@@ -190,15 +197,15 @@ export function NewBooking() {
             >
 
               <option value="">
-                Select Vendor
+                Select Provider
               </option>
 
               <option value="Assad Khan">
                 Assad Khan
               </option>
 
-              <option value="Yasir Khan">
-                Yasir Khan
+              <option value="Muhammad Yasir">
+                Muhammad Yasir
               </option>
 
             </select>
@@ -206,7 +213,7 @@ export function NewBooking() {
           </div>
 
 
-          <!-- DATE SECTION -->
+          <!-- DATES -->
 
           <div
             style="
@@ -216,7 +223,7 @@ export function NewBooking() {
             "
           >
 
-            <!-- FROM DATE -->
+            <!-- START DATE -->
 
             <div>
 
@@ -228,7 +235,7 @@ export function NewBooking() {
                   color: #374151;
                 "
               >
-                From Date
+                Start Date
               </label>
 
               <input 
@@ -276,64 +283,9 @@ export function NewBooking() {
           </div>
 
 
-          <!-- TIME SWITCH -->
+          <!-- NOTES -->
 
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              background: #f9fafb;
-              padding: 18px;
-              border-radius: 14px;
-            "
-          >
-
-            <div>
-
-              <h3
-                style="
-                  margin: 0;
-                  font-size: 16px;
-                  color: #111827;
-                "
-              >
-                Store Time
-              </h3>
-
-              <p
-                style="
-                  margin-top: 5px;
-                  color: #6b7280;
-                  font-size: 13px;
-                "
-              >
-                Enable this if pickup timing matters.
-              </p>
-
-            </div>
-
-            <input
-              type="checkbox"
-              id="enable-time"
-              style="
-                width: 22px;
-                height: 22px;
-                cursor: pointer;
-              "
-            />
-
-          </div>
-
-
-          <!-- TIME INPUT -->
-
-          <div
-            id="time-container"
-            style="
-              display: none;
-            "
-          >
+          <div>
 
             <label
               style="
@@ -343,19 +295,22 @@ export function NewBooking() {
                 color: #374151;
               "
             >
-              Select Time
+              Notes (Optional)
             </label>
 
-            <input 
-              type="time"
+            <textarea
+              placeholder="Any special instructions..."
+              rows="4"
               style="
                 width: 100%;
                 padding: 14px;
                 border-radius: 12px;
                 border: 1px solid #d1d5db;
                 font-size: 15px;
+                outline: none;
+                resize: none;
               "
-            />
+            ></textarea>
 
           </div>
 

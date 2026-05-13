@@ -10,7 +10,6 @@ class AppDatabase {
       app.getPath('userData'),
       'rentalOffice.db'
     )
-
     this.db = new Database(dbPath)
 
     this.db.pragma('journal_mode = WAL')
@@ -30,11 +29,9 @@ class AppDatabase {
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        car_name TEXT NOT NULL,
+        car_name_and_no TEXT NOT NULL,
 
-        plate_number TEXT UNIQUE NOT NULL,
-
-        car_type TEXT NOT NULL,
+       
 
         daily_rate REAL NOT NULL,
 
@@ -51,65 +48,38 @@ class AppDatabase {
        TABLE 2 : BOOKINGS
     ========================== */
 
-    this.db.exec(`
+   this.db.exec(`
 
-      CREATE TABLE IF NOT EXISTS bookings (
+  CREATE TABLE IF NOT EXISTS bookings (
 
-        booking_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    booking_id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-        car_id INTEGER NOT NULL,
+    car_id INTEGER NOT NULL,
+    booked_by TEXT NOT NULL,
 
-        booked_by TEXT NOT NULL
-        CHECK (
-          booked_by IN (
-            'Hammad Direct',
-            'Auto Hire'
-          )
-        ),
+    car_provided_by TEXT NOT NULL,
 
-        client_name TEXT,
+    start_date TEXT NOT NULL,
 
-        start_date TEXT NOT NULL,
+    end_date TEXT NOT NULL,
 
-        end_date TEXT NOT NULL,
+    number_of_days INTEGER NOT NULL,
 
-        notes TEXT,
+    daily_rate REAL NOT NULL,
 
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    total_rental REAL NOT NULL,
 
-        FOREIGN KEY (car_id)
-        REFERENCES cars(id)
+    commission_due REAL NOT NULL,
 
-      )
+    notes TEXT,
 
-    `)
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
+    FOREIGN KEY (car_id) REFERENCES cars(id)
 
-    /* =========================
-       TABLE 3 : OUTSIDE HIRES
-    ========================== */
+  )
 
-    this.db.exec(`
-
-      CREATE TABLE IF NOT EXISTS outside_hires (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        date TEXT NOT NULL,
-
-        car_type_hired TEXT NOT NULL,
-
-        number_of_days INTEGER NOT NULL,
-
-        cost_paid REAL NOT NULL,
-
-        notes TEXT,
-
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-
-      )
-
-    `)
+`)
 
   }
 
@@ -124,158 +94,162 @@ class AppDatabase {
 
       INSERT INTO cars (
 
-        car_name,
-        plate_number,
-        car_type,
+        car_name_and_no,
         daily_rate,
         commission_per_day
 
       )
 
-      VALUES (?, ?, ?, ?, ?)
+      VALUES (?, ?, ?)
 
     `)
 
     return statement.run(
 
-      data.car_name,
-      data.plate_number,
-      data.car_type,
+      data.car_name_and_no,
       data.daily_rate,
       data.commission_per_day
 
     )
   }
+//Get Cars
+getAllCars() {
 
+  const statement = this.db.prepare(`
+    SELECT *
+    FROM cars
+    ORDER BY id DESC
+  `)
 
+  return statement.all()
+}
   /* =========================
      INSERT BOOKING
   ========================== */
 
   addBooking(data) {
 
-    const statement = this.db.prepare(`
+    /* =========================
+       GET CAR DATA
+    ========================== */
 
-      INSERT INTO bookings (
+    const car = this.db.prepare(`
 
-        car_id,
-        booked_by,
-        client_name,
-        start_date,
-        end_date,
-        notes
+      SELECT *
+      FROM cars
+      WHERE id = ?
 
+    `).get(data.car_id)
+
+
+    if (!car) {
+      throw new Error('Car not found')
+    }
+
+
+    /* =========================
+       CALCULATE NUMBER OF DAYS
+    ========================== */
+
+    const start = new Date(data.start_date)
+
+    const end = new Date(data.end_date)
+
+    const differenceInMs =
+      end.getTime() - start.getTime()
+
+    const number_of_days =
+      Math.ceil(
+        differenceInMs /
+        (1000 * 60 * 60 * 24)
       )
 
-      VALUES (?, ?, ?, ?, ?, ?)
 
-    `)
+    /* =========================
+       TOTAL RENTAL
+    ========================== */
 
-    return statement.run(
+    const total_rental =
+      number_of_days *
+      car.daily_rate
 
-      data.car_id,
-      data.booked_by,
-      data.client_name,
-      data.start_date,
-      data.end_date,
-      data.notes
 
-    )
+    /* =========================
+       COMMISSION LOGIC
+    ========================== */
+
+    let commission_due = 0
+
+    if (
+      data.car_provided_by === 'Yasir Khan'
+    ) {
+
+      commission_due =
+        number_of_days *
+        car.commission_per_day
+    }
+
+
+    /* =========================
+       INSERT BOOKING
+    ========================== */
+
+  const statement = this.db.prepare(`
+
+  INSERT INTO bookings (
+
+    car_id,
+    car_provided_by,
+client_name,
+    start_date,
+
+    end_date,
+
+    number_of_days,
+
+    daily_rate,
+
+    total_rental,
+
+    commission_due,
+
+    notes
+
+  )
+
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
+`)
+
+return statement.run(
+
+  data.car_id,
+
+  data.car_provided_by,
+data.customer_name,
+  data.start_date,
+
+  data.end_date,
+
+  number_of_days,
+
+  car.daily_rate,
+
+  total_rental,
+
+  commission_due,
+
+  data.notes
+
+)
   }
 
 
   /* =========================
-     GET BOOKINGS WITH FORMULAS
+     GET ALL BOOKINGS
   ========================== */
 
-  getBookingsWithCalculations() {
 
-    const statement = this.db.prepare(`
-
-      SELECT
-
-        bookings.booking_id,
-
-        cars.car_name,
-
-        cars.car_type,
-
-        bookings.booked_by,
-
-        bookings.client_name,
-
-        bookings.start_date,
-
-        bookings.end_date,
-
-
-        /* =====================
-           NUMBER OF DAYS
-        ====================== */
-
-        CAST(
-          julianday(bookings.end_date)
-          -
-          julianday(bookings.start_date)
-          AS INTEGER
-        ) AS number_of_days,
-
-
-        /* =====================
-           TOTAL RENTAL
-        ====================== */
-
-        (
-          CAST(
-            julianday(bookings.end_date)
-            -
-            julianday(bookings.start_date)
-            AS INTEGER
-          )
-          *
-          cars.daily_rate
-        ) AS total_rental,
-
-
-        /* =====================
-           COMMISSION DUE
-        ====================== */
-
-        CASE
-
-          WHEN bookings.booked_by = 'Auto Hire'
-
-          THEN
-
-            (
-              CAST(
-                julianday(bookings.end_date)
-                -
-                julianday(bookings.start_date)
-                AS INTEGER
-              )
-              *
-              cars.commission_per_day
-            )
-
-          ELSE 0
-
-        END AS commission_due,
-
-
-        bookings.notes
-
-      FROM bookings
-
-      INNER JOIN cars
-      ON bookings.car_id = cars.id
-
-      ORDER BY bookings.booking_id DESC
-
-    `)
-
-    return statement.all()
-  }
 
 }
 

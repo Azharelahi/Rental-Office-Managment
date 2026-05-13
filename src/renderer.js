@@ -1,7 +1,13 @@
 import './index.css'
 
+
 import { Sidebar } from './components/Sidebar.js'
-import { NewBooking } from './pages/NewBooking.js'
+
+import {
+  NewBooking,
+  initNewBooking
+} from './pages/NewBooking.js'
+
 import { ScheduledBookings } from './pages/ScheduledBookings.js'
 import { Statistics } from './pages/Statistics.js'
 
@@ -21,12 +27,18 @@ app.innerHTML = `
   </div>
 `
 
+// IMPORTANT
+initNewBooking()
+
 const content = document.getElementById('content')
 
 window.loadPage = (page) => {
 
   if (page === 'new-booking') {
+
     content.innerHTML = NewBooking()
+
+    initNewBooking()
   }
 
   if (page === 'scheduled-bookings') {

@@ -1,22 +1,28 @@
 import { app, BrowserWindow } from 'electron';
+import { ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import AppDatabase from './db/database';
+import "./db/lib.js"
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
 let db;
+console.log("MAIN DIRNAME:", __dirname);
+console.log("PRELOAD PATH:", path.join(__dirname, "preload.js"));
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    alwaysOnTop: true,
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-    },
-  });
+ const mainWindow = new BrowserWindow({
+  width: 800,
+  height: 600,
+  alwaysOnTop: true,
+  webPreferences: {
+preload: path.join(__dirname, 'preload.js'),
+    contextIsolation: true,
+    nodeIntegration: false
+  }
+});
 
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
@@ -34,6 +40,10 @@ const createWindow = () => {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   db= new AppDatabase()
+  ipcMain.handle("car:getAll",()=>{
+return db.getAllCars()
+
+  })
   createWindow();
 
   // On OS X it's common to re-create a window in the app when the
