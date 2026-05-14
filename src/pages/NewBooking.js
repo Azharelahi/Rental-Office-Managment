@@ -1,26 +1,57 @@
 async function loadCars() {
-console.log("Loading cars from database...")
-  const select = document.getElementById('car-select')
+  console.log("Loading cars from database...");
 
-  if (!select) return   // safety check
+  const select = document.getElementById("car-select");
+  if (!select) return;
 
-  const cars = await window.api.getCars()
+  const cars = await window.api.getCars();
+
+  if (!cars || cars.length === 0) {
+    console.log("No cars found");
+    return;
+  }
+
+  // clear old dynamic options
+  select.innerHTML = `
+    <option value="">
+      Select Car From Database
+    </option>
+  `;
 
   cars.forEach(car => {
+    const option = document.createElement("option");
 
-    const option = document.createElement('option')
+    option.value = car.car_name_and_no;
+    option.textContent = car.car_name_and_no;
 
-    option.value = car.id
-    option.textContent = car.car_name_and_no
+    select.appendChild(option);
+  });
+}
+function attachFormHandler() {
+  const form = document.getElementById("booking-form");
 
-    select.appendChild(option)
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  })
+    const data = {
+      clientName: document.getElementById("client-name").value,
+      carName: document.getElementById("car-select").value,
+      manualCar: document.getElementById("manual-car").value,
+      provider: document.getElementById("provider").value,
+      startDate: document.getElementById("start-date").value,
+      endDate: document.getElementById("end-date").value,
+      notes: document.getElementById("notes").value
+    };
+
+    console.log("📦 FORM DATA:", data);
+
+    // 🔥 THIS IS THE MISSING PART
+    window.api.createBooking(data);
+  });
 }
 export function initNewBooking() {
-  requestAnimationFrame(() => {
-    loadCars()
-  })
+  loadCars()
+  attachFormHandler();
 }
 // loadCars()
 export function NewBooking() {
@@ -69,6 +100,7 @@ export function NewBooking() {
 
 
         <form
+        id="booking-form"
           class="booking-form"
           style="
             display: flex;
@@ -94,6 +126,7 @@ export function NewBooking() {
 
             <input 
               type="text"
+              id="client-name"
               placeholder="Enter client name"
               style="
                 width: 100%;
@@ -155,6 +188,7 @@ export function NewBooking() {
 
             <input 
               type="text"
+              id="manual-car"
               placeholder="Enter car manually (optional for now)"
               style="
                 width: 100%;
@@ -186,6 +220,7 @@ export function NewBooking() {
 
             <select
               required
+              id="provider"
               style="
                 width: 100%;
                 padding: 14px;
@@ -240,6 +275,7 @@ export function NewBooking() {
 
               <input 
                 type="date"
+                id="start-date"
                 style="
                   width: 100%;
                   padding: 14px;
@@ -269,6 +305,7 @@ export function NewBooking() {
 
               <input 
                 type="date"
+                id="end-date"
                 style="
                   width: 100%;
                   padding: 14px;
@@ -299,6 +336,7 @@ export function NewBooking() {
             </label>
 
             <textarea
+            id="notes"
               placeholder="Any special instructions..."
               rows="4"
               style="

@@ -3,6 +3,7 @@ import { ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import AppDatabase from './db/database';
+import { addNewBooking } from './db/lib.js';
 import "./db/lib.js"
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -39,22 +40,31 @@ preload: path.join(__dirname, 'preload.js'),
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  db= new AppDatabase()
-  ipcMain.handle("car:getAll",()=>{
-return db.getAllCars()
+  db = new AppDatabase();
 
-  })
+  // GET CARS
+  ipcMain.handle("car:getAll", () => {
+    return db.getAllCars();
+  });
+
+  // CREATE BOOKING
+  ipcMain.handle("booking:create", (event, bookingData) => {
+    console.log("📥 BOOKING RECEIVED IN MAIN:", bookingData);
+const result = addNewBooking(bookingData);
+     return {
+    success: true,
+    id: result.id
+  };
+  });
+
   createWindow();
 
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
 });
-
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
