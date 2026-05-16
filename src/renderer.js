@@ -28,20 +28,29 @@ app.innerHTML = `
 `
 // IMPORTANT
 initNewBooking()
+let currentFilter = "all";
 
+document.addEventListener("change", async (e) => {
+  if (e.target.id === "filterSelect") {
+    currentFilter = e.target.value;
+
+    const html = await ScheduledBookings(currentFilter);
+
+    document.getElementById("content").innerHTML = html;
+  }
+});
 const content = document.getElementById('content')
-window.loadPage = (page) => {
+window.loadPage = async (page) => {
 
   if (page === 'new-booking') {
-
     content.innerHTML = NewBooking()
-
     initNewBooking()
   }
 
-  if (page === 'scheduled-bookings') {
-    content.innerHTML = ScheduledBookings()
-  }
+ if (page === 'scheduled-bookings') {
+  const html = await ScheduledBookings(currentFilter);
+  content.innerHTML = html;
+}
 
   if (page === 'statistics') {
     content.innerHTML = Statistics()
@@ -49,7 +58,6 @@ window.loadPage = (page) => {
 
   updateActiveButton(page)
 }
-
 function updateActiveButton(activePage) {
 
   document.querySelectorAll('.menu-btn').forEach(btn => {

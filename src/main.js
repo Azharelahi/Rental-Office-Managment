@@ -1,10 +1,12 @@
 import { app, BrowserWindow } from 'electron';
 import { ipcMain } from 'electron';
 import path from 'node:path';
+import { getAllBookings } from './db/lib.js';
 import started from 'electron-squirrel-startup';
 import AppDatabase from './db/database';
 import { addNewBooking } from './db/lib.js';
 import "./db/lib.js"
+import { get } from 'node:http';
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
@@ -45,7 +47,10 @@ app.whenReady().then(() => {
   ipcMain.handle("car:getAll", () => {
     return db.getAllCars();
   });
-
+//get all bookings
+  ipcMain.handle("booking:getAll", () => {
+    return getAllBookings();
+  });
   // CREATE BOOKING
   ipcMain.handle("booking:create", (event, bookingData) => {
 const result = addNewBooking(bookingData);

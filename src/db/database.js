@@ -17,15 +17,11 @@ class AppDatabase {
     this.setUpDatabase()
   }
 
-  /* =========================
-     SCHEMA
-  ========================== */
+
 
   setUpDatabase() {
 
-    /* -------------------------
-       CARS TABLE
-    -------------------------- */
+
 
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS cars (
@@ -37,9 +33,7 @@ class AppDatabase {
       )
     `)
 
-    /* -------------------------
-       BOOKINGS TABLE
-    -------------------------- */
+  
 
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS bookings (
@@ -65,9 +59,7 @@ class AppDatabase {
     `)
   }
 
-  /* =========================
-     ADD CAR
-  ========================== */
+
 
   addCar(data) {
     const statement = this.db.prepare(`
@@ -86,9 +78,6 @@ class AppDatabase {
     )
   }
 
-  /* =========================
-     GET CARS
-  ========================== */
 
   getAllCars() {
     const statement = this.db.prepare(`
@@ -98,16 +87,11 @@ class AppDatabase {
     return statement.all()
   }
 
-  /* =========================
-     ADD BOOKING
-  ========================== */
 
-  addBooking(data) {
+  addBookingquery(data) {
 
 
-    /* -------------------------
-       GET CAR
-    -------------------------- */
+
 
     const car = this.db.prepare(`
       SELECT * FROM cars WHERE car_name_and_no = ?
@@ -117,9 +101,6 @@ class AppDatabase {
       throw new Error("Car not found here Azhar!")
     }
 
-    /* -------------------------
-       CALCULATE DAYS
-    -------------------------- */
 
     const start = new Date(data.start_date)
     const end = new Date(data.end_date)
@@ -131,17 +112,12 @@ class AppDatabase {
       1
     )
 
-    /* -------------------------
-       CALCULATIONS
-    -------------------------- */
 
     const daily_rate = car.daily_rate
     const total_rental = number_of_days * daily_rate
     const commission_due = number_of_days * car.commission_per_day
 
-    /* -------------------------
-       INSERT BOOKING
-    -------------------------- */
+
 
     const statement = this.db.prepare(`
       INSERT INTO bookings (
@@ -172,6 +148,14 @@ class AppDatabase {
       data.notes
     )
   }
+ getAllBookingsQuery() {
+  const statement = this.db.prepare(`
+    SELECT * FROM bookings
+    ORDER BY start_date DESC
+  `);
+
+  return statement.all();
+}
 }
 
 export default AppDatabase
