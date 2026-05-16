@@ -148,13 +148,87 @@ class AppDatabase {
       data.notes
     )
   }
- getAllBookingsQuery() {
+getAllBookingsQuery() {
   const statement = this.db.prepare(`
-    SELECT * FROM bookings
-    ORDER BY start_date DESC
+    SELECT 
+      bookings.*,
+      cars.car_name_and_no AS carName
+    FROM bookings
+    LEFT JOIN cars ON bookings.car_id = cars.id
+    ORDER BY bookings.start_date DESC
   `);
 
   return statement.all();
+}
+getBookingByIdQuery(id) {
+  const statement = this.db.prepare(`
+    SELECT 
+      bookings.*,
+      cars.car_name_and_no AS carName
+    FROM bookings
+    LEFT JOIN cars ON bookings.car_id = cars.id
+    WHERE bookings.booking_id = ?
+  `);
+
+  return statement.get(id);
+}
+updateBookingQuery(data) {
+
+  // 1. Get full car record
+  const car = this.db.prepare(`
+    SELECT * FROM cars WHERE car_name_and_no = ?
+  `).get(data.car_name_and_no);
+
+  if (!car) {
+    throw new Error("Car not found");
+  }
+
+  // 2. Calculate days
+  const start = new Date(data.start_date);
+  const end = new Date(data.end_date);
+
+  const diffInMs = end.getTime() - start.getTime();
+
+  const number_of_days = Math.max(
+    Math.ceil(diffInMs / (1000 * 60 * 60 * 24)),
+    1
+  );
+
+  // 3. Recalculate pricing
+  const daily_rate = car.daily_rate;
+  const total_rental = number_of_days * daily_rate;
+  const commission_due = number_of_days * car.commission_per_day;
+
+  // 4. Update booking
+  const statement = this.db.prepare(`
+    UPDATE bookings
+    SET
+      car_id = ?,
+      booked_by = ?,
+      car_provided_by = ?,
+      start_date = ?,
+      end_date = ?,
+      number_of_days = ?,
+      daily_rate = ?,
+      total_rental = ?,
+      commission_due = ?,
+      notes = ?
+    WHERE booking_id = ?
+  `);
+
+  return statement.run(
+    car.id,
+    data.booked_by,
+    data.car_provided_by,
+    data.start_date,
+    data.end_date,
+    number_of_days,
+    daily_rate,
+    total_rental,
+    commission_due,
+    data.notes,
+    data.booking_id
+  );
 }
 }
 

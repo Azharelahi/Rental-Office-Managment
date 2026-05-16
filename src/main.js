@@ -1,63 +1,80 @@
-import { app, BrowserWindow } from 'electron';
-import { ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
-import { getAllBookings } from './db/lib.js';
 import started from 'electron-squirrel-startup';
-import AppDatabase from './db/database';
-import { addNewBooking } from './db/lib.js';
-import "./db/lib.js"
-import { get } from 'node:http';
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+
+import AppDatabase from './db/database.js';
+import {
+  updateBooking,
+  getAllBookings,
+  addNewBooking,
+  deleteBooking,
+  getBookingById
+} from './db/lib.js';
+
 if (started) {
   app.quit();
 }
+
 let db;
 
 const createWindow = () => {
-  // Create the browser window.
- const mainWindow = new BrowserWindow({
-  width: 800,
-  height: 600,
-  alwaysOnTop: true,
-  webPreferences: {
-preload: path.join(__dirname, 'preload.js'),
-    contextIsolation: true,
-    nodeIntegration: false
-  }
-});
+  const mainWindow = new BrowserWindow({
+    width: 1000,
+    height: 700,
+    alwaysOnTop: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
 
-  // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    mainWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+    );
   }
 
-  // Open the DevTools.
   mainWindow.webContents.openDevTools();
 };
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+// ---------------- APP READY ----------------
 app.whenReady().then(() => {
+
   db = new AppDatabase();
 
-  // GET CARS
+  // ---------------- CAR ----------------
   ipcMain.handle("car:getAll", () => {
     return db.getAllCars();
   });
-//get all bookings
+ipcMain.handle("booking:update", (event, data) => {
+  return updateBooking(data);
+});
+  // ---------------- BOOKINGS (READ ALL) ----------------
   ipcMain.handle("booking:getAll", () => {
     return getAllBookings();
   });
-  // CREATE BOOKING
+
+  // ---------------- CREATE ----------------
   ipcMain.handle("booking:create", (event, bookingData) => {
-const result = addNewBooking(bookingData);
-     return {
-    success: true,
-    id: result.id
-  };
+    const result = addNewBooking(bookingData);
+
+    return {
+      success: true,
+      id: result.id
+    };
+  });
+
+  // ---------------- DELETE ----------------
+  ipcMain.handle("booking:delete", (event, payload) => {
+    return deleteBooking(payload.booking_id);
+  });
+
+  // ---------------- GET BY ID ----------------
+  ipcMain.handle("booking:getById", (event, payload) => {
+    return getBookingById(payload.booking_id);
   });
 
   createWindow();
@@ -68,14 +85,10 @@ const result = addNewBooking(bookingData);
     }
   });
 });
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+
+// ---------------- CLOSE APP ----------------
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.

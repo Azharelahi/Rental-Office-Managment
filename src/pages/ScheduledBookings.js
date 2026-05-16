@@ -41,17 +41,26 @@ export async function ScheduledBookings(filter = "all") {
 // ---------------- CARD UI ----------------
 function renderCard(b) {
   return `
-    <div class="card">
+    <div class="card" data-id="${b.booking_id}">
 
       <div class="card-top">
         <h2>${b.booked_by}</h2>
-        <span class="badge">#${b.booking_id}</span>
+
+        <div class="actions">
+          <button class="edit-btn" data-action="edit" data-id="${b.booking_id}">
+            ✏️
+          </button>
+
+          <button class="delete-btn" data-action="delete" data-id="${b.booking_id}">
+            🗑️
+          </button>
+        </div>
       </div>
 
       <div class="info">
         <div>
           <p class="label">Car</p>
-          <p class="value">${b.car_id}</p>
+          <p class="value">${b.carName}</p>
         </div>
 
         <div>

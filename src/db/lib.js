@@ -2,10 +2,16 @@ import AppDatabase from "./database";
 
 let db = new AppDatabase();
 
-export function updateBooking(){
-
+export function updateBooking(data){
+    console.log("UPDATE BOOKING", data);
+    return db.updateBookingQuery(data);
 }
-export function deleteBooking(){}
+export function deleteBooking(id){
+console.log("DELETE BOOKING ID:", id)}
+export function getBookingById(id){
+console.log("GET BOOKING BY ID:", db.getAllBookingsQuery(id))
+return db.getBookingByIdQuery(id)
+}
 export function getAllBookings(){return db.getAllBookingsQuery()}
 export function getBookingByName(name){}
 export function getBookingByCarProvider(carProvider){}
