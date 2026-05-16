@@ -3,7 +3,6 @@ import AppDatabase from "./database";
 let db = new AppDatabase();
 
 export function addNewBooking (bookingData) {
-    console.log("Adding new booking to database with data:", bookingData);
     const start = new Date(bookingData.startDate);
 const end = new Date(bookingData.endDate);
 

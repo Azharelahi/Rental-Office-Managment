@@ -30,7 +30,6 @@ app.innerHTML = `
 initNewBooking()
 
 const content = document.getElementById('content')
-console.log("API FULL:", window.api);
 window.loadPage = (page) => {
 
   if (page === 'new-booking') {

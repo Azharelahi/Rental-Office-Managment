@@ -10,8 +10,7 @@ if (started) {
   app.quit();
 }
 let db;
-console.log("MAIN DIRNAME:", __dirname);
-console.log("PRELOAD PATH:", path.join(__dirname, "preload.js"));
+
 const createWindow = () => {
   // Create the browser window.
  const mainWindow = new BrowserWindow({
@@ -49,7 +48,6 @@ app.whenReady().then(() => {
 
   // CREATE BOOKING
   ipcMain.handle("booking:create", (event, bookingData) => {
-    console.log("📥 BOOKING RECEIVED IN MAIN:", bookingData);
 const result = addNewBooking(bookingData);
      return {
     success: true,

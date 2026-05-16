@@ -104,7 +104,6 @@ class AppDatabase {
 
   addBooking(data) {
 
-    console.log("Adding booking:", data)
 
     /* -------------------------
        GET CAR

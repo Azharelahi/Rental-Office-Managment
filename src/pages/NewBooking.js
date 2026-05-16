@@ -1,5 +1,4 @@
 async function loadCars() {
-  console.log("Loading cars from database...");
 
   const select = document.getElementById("car-select");
   if (!select) return;
@@ -7,7 +6,6 @@ async function loadCars() {
   const cars = await window.api.getCars();
 
   if (!cars || cars.length === 0) {
-    console.log("No cars found");
     return;
   }
 
@@ -43,7 +41,6 @@ function attachFormHandler() {
       notes: document.getElementById("notes").value
     };
 
-    console.log("📦 FORM DATA:", data);
 
     // 🔥 THIS IS THE MISSING PART
     window.api.createBooking(data);
